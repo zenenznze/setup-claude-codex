@@ -8,29 +8,29 @@ Linux 上一键清理旧配置并配置 Claude Code / CodeX 的脚本集合。
 
 | 脚本 | 用途 | 方案 |
 |------|------|------|
-| `setup-claude-codex.sh` | Claude Code (cc) | sub2api / dpsk |
+| `setup-claude-dpsk.sh` | Claude Code (cc) | sub2api / dpsk |
 | `setup-claude-codesome.sh` | Claude Code (cc) | Codesome |
 | `setup-codex-sub2api.sh` | CodeX | sub2api |
 | `setup-codex-codesome.sh` | CodeX | Codesome |
 
 ---
 
-## 1. setup-claude-codex.sh
+## 1. setup-claude-dpsk.sh
 
 配置 Claude Code，使用 sub2api 的 deepseek-v4 模型。
 
 ### 快速使用
 
 ```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-claude-codex.sh
-chmod +x setup-claude-codex.sh
-./setup-claude-codex.sh
+curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-claude-dpsk.sh
+chmod +x setup-claude-dpsk.sh
+./setup-claude-dpsk.sh
 ```
 
 也可以直接传 key：
 
 ```bash
-./setup-claude-codex.sh "你的apikey"
+./setup-claude-dpsk.sh "你的apikey"
 ```
 
 ### 写入的环境变量
