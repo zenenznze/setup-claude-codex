@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/joe/.agents/skills/**)",
+      "Bash(ls -d github-auth github-code-review github-issues github-pr-workflow github-repo-management skill-github social-link-github-project-deploy)",
+      "Bash(mv github-auth *)",
+      "Bash(mv github-code-review *)",
+      "Bash(mv github-issues *)",
+      "Bash(mv github-pr-workflow *)",
+      "Bash(mv github-repo-management *)",
+      "Bash(cp _backup_github-auth/scripts/gh-env.sh github/scripts/)",
+      "Bash(cp _backup_github-repo-management/references/github-api-cheatsheet.md github/references/)",
+      "Bash(cp _backup_github-pr-workflow/references/ci-troubleshooting.md github/references/)",
+      "Bash(cp _backup_github-pr-workflow/references/conventional-commits.md github/references/)",
+      "Bash(cp _backup_github-code-review/references/review-output-template.md github/references/)"
+    ]
+  }
+}

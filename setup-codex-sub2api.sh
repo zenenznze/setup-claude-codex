@@ -4,6 +4,11 @@ set -euo pipefail
 # ============================================================
 # CodeX 一键清理旧配置 & 配置脚本 (Linux)
 # 方案: sub2api
+#
+# 用法: ./setup-codex-sub2api.sh [apikey] [lightos|zen]
+#   lightos (默认): 懒猫虚拟环境，base_url = http://host.lzcapp:8888/v1
+#   zen:            WSL / 普通 Linux，base_url = https://sub2api.zen.heiyu.space/v1
+#                   (需先配好 hclient 组网)
 # ============================================================
 
 RED='\033[0;31m'
@@ -15,16 +20,33 @@ log()  { echo -e "${GREEN}[OK]${NC} $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()  { echo -e "${RED}[ERR]${NC} $*"; }
 
+# ---- 0. 解析参数 ----
+API_KEY=""
+ENV_TYPE="lightos"
+
+for arg in "${@}"; do
+	case "$arg" in
+		lightos|zen|wsl) ENV_TYPE="$arg" ;;
+		*) API_KEY="$arg" ;;
+	esac
+done
+[[ "$ENV_TYPE" == "wsl" ]] && ENV_TYPE="zen"
+
+if [[ "$ENV_TYPE" == "zen" ]]; then
+	BASE_URL="https://sub2api.zen.heiyu.space/v1"
+else
+	BASE_URL="http://host.lzcapp:8888/v1"
+fi
+
 echo "============================================"
 echo " CodeX 一键配置脚本 (Linux)"
 echo " 方案: sub2api"
+echo " 环境: $ENV_TYPE → $BASE_URL"
 echo "============================================"
 echo ""
 
-# ---- 0. 索取 API Key ----
-if [[ -n "${1:-}" ]]; then
-	API_KEY="$1"
-else
+# ---- 1. 索取 API Key ----
+if [[ -z "$API_KEY" ]]; then
 	read -rsp "请输入你的 sub2api API Key: " API_KEY
 	echo ""
 fi
@@ -34,7 +56,7 @@ if [[ -z "$API_KEY" ]]; then
 	exit 1
 fi
 
-# ---- 1. 检测 shell ----
+# ---- 2. 检测 shell ----
 CURRENT_SHELL=$(basename "${SHELL:-/bin/bash}")
 case "$CURRENT_SHELL" in
 	zsh)  TARGET_RC="$HOME/.zshrc" ;;
@@ -42,15 +64,15 @@ case "$CURRENT_SHELL" in
 esac
 log "检测到 shell: $CURRENT_SHELL，配置文件: $TARGET_RC"
 
-# ---- 2. 大扫除：清理残留配置 ----
+# ---- 3. 大扫除：清理残留配置 ----
 log "开始清理旧配置..."
 
-# 2a. 清理当前终端环境变量
+# 3a. 清理当前终端环境变量
 for var in SUB2API_API_KEY CODESOME_API_KEY CODEX_HOME; do
 	unset "$var" 2>/dev/null || true
 done
 
-# 2b. 清理 shell 配置文件中的旧 CodeX 相关行
+# 3b. 清理 shell 配置文件中的旧 CodeX 相关行
 for f in ~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv; do
 	if [[ -f "$f" ]]; then
 		sed -i.bak -E \
@@ -62,10 +84,10 @@ for f in ~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv; do
 	fi
 done
 
-# 2c. 删除旧 CodeX 配置
+# 3c. 删除旧 CodeX 配置
 rm -f ~/.codex/config.toml
 
-# 2d. 验证清理
+# 3d. 验证清理
 RC_FILES=(~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv)
 RESIDUE=$(grep -nE 'SUB2API|CODESOME|CODEX_HOME' "${RC_FILES[@]}" 2>/dev/null || true)
 if [[ -z "$RESIDUE" ]]; then
@@ -75,11 +97,11 @@ else
 	echo "$RESIDUE"
 fi
 
-# ---- 3. 写入 CodeX config.toml ----
-log "写入 CodeX 配置文件..."
+# ---- 4. 写入 CodeX config.toml ----
+log "写入 CodeX 配置文件 (base_url: $BASE_URL)..."
 mkdir -p ~/.codex
 
-cat > ~/.codex/config.toml <<'EOF'
+cat > ~/.codex/config.toml <<EOF
 model = "gpt-5.5"
 review_model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
@@ -92,7 +114,7 @@ model_auto_compact_token_limit = 900000
 
 [model_providers.sub2api]
 name = "Sub2API"
-base_url = "http://host.lzcapp:8888/v1"
+base_url = "${BASE_URL}"
 wire_api = "responses"
 env_key = "SUB2API_API_KEY"
 EOF
@@ -100,7 +122,7 @@ EOF
 chmod 600 ~/.codex/config.toml
 log "~/.codex/config.toml 已创建"
 
-# ---- 4. 写入环境变量到 shell 配置 ----
+# ---- 5. 写入环境变量到 shell 配置 ----
 log "写入环境变量到 $TARGET_RC ..."
 
 # 对 key 做 shell 单引号转义
@@ -114,7 +136,7 @@ export CODEX_HOME="\$HOME/.codex"
 export SUB2API_API_KEY='${ESCAPED_KEY}'
 EOF
 
-# ---- 5. 生效 ----
+# ---- 6. 生效 ----
 log "使配置生效..."
 # shellcheck disable=SC1090
 source "$TARGET_RC" 2>/dev/null || true
@@ -122,7 +144,7 @@ source "$TARGET_RC" 2>/dev/null || true
 export CODEX_HOME="$HOME/.codex"
 export SUB2API_API_KEY="$API_KEY"
 
-# ---- 6. 验证 ----
+# ---- 7. 验证 ----
 echo ""
 echo "============================================"
 echo " 配置完成，验证如下:"
