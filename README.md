@@ -9,6 +9,7 @@ Linux 上一键清理旧配置并配置 Claude Code / CodeX 的脚本集合。
 | 脚本 | 用途 | 方案 |
 |------|------|------|
 | `setup-claude-codex.sh` | Claude Code (cc) | sub2api / dpsk |
+| `setup-claude-codesome.sh` | Claude Code (cc) | Codesome |
 | `setup-codex-sub2api.sh` | CodeX | sub2api |
 | `setup-codex-codesome.sh` | CodeX | Codesome |
 
@@ -53,7 +54,43 @@ claude
 
 ---
 
-## 2. setup-codex-sub2api.sh
+## 2. setup-claude-codesome.sh
+
+配置 Claude Code，使用 Codesome 官方 API 地址（`https://cc.codesome.ai`）。
+
+### 快速使用
+
+```bash
+curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-claude-codesome.sh
+chmod +x setup-claude-codesome.sh
+./setup-claude-codesome.sh
+```
+
+也可以直接传 key：
+
+```bash
+./setup-claude-codesome.sh "sk-..."
+```
+
+### 写入的环境变量
+
+| 变量 | 值 |
+|------|-----|
+| `ANTHROPIC_BASE_URL` | `https://cc.codesome.ai` |
+| `ANTHROPIC_AUTH_TOKEN` | 你输入的 key |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | `1` |
+
+> 与 dpsk 方案不同，此方案不设置 `ANTHROPIC_MODEL` 等模型覆盖变量。脚本会自动清理之前 dpsk 方案残留的模型环境变量。
+
+### 验证
+
+```bash
+claude
+```
+
+---
+
+## 3. setup-codex-sub2api.sh
 
 配置 CodeX（OpenAI CLI），使用 sub2api 方案，模型 gpt-5.5。
 
@@ -84,7 +121,7 @@ codex
 
 ---
 
-## 3. setup-codex-codesome.sh
+## 4. setup-codex-codesome.sh
 
 配置 CodeX（OpenAI CLI），使用 Codesome 方案，模型 gpt-5.5。
 
