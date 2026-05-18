@@ -4,6 +4,28 @@ Linux 上一键清理旧配置并配置 Claude Code / CodeX 的脚本集合。
 
 ---
 
+## 快速开始（LightOS）
+
+在懒猫虚拟环境内，一条命令配置 Claude Code + DeepSeek：
+
+```bash
+curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-claude-dpsk.sh
+chmod +x setup-claude-dpsk.sh
+./setup-claude-dpsk.sh
+```
+
+按提示输入 sub2api API Key 即可。脚本会自动清理旧配置、写入环境变量并生效。
+
+也可以直接传 key：
+
+```bash
+./setup-claude-dpsk.sh "你的apikey"
+```
+
+配置完成后，新开终端输入 `claude` 即可使用。
+
+---
+
 ## 脚本列表
 
 | 脚本 | 用途 | 方案 |
@@ -60,7 +82,7 @@ chmod +x setup-claude-dpsk.sh
 | `ANTHROPIC_AUTH_TOKEN` | 你输入的 key | 你输入的 key |
 | `ANTHROPIC_MODEL` | `deepseek-v4-pro[1m]` | `deepseek-v4-pro[1m]` |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `deepseek-v4-pro[1m]` | `deepseek-v4-pro[1m]` |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `deepseek-v4-pro[1m]` | `deepseek-v4-pro[1m]` |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `deepseek-v4-flash` | `deepseek-v4-flash` |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `deepseek-v4-flash` | `deepseek-v4-flash` |
 | `CLAUDE_CODE_SUBAGENT_MODEL` | `deepseek-v4-flash` | `deepseek-v4-flash` |
 | `CLAUDE_CODE_EFFORT_LEVEL` | `max` | `max` |
