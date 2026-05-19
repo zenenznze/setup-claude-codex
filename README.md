@@ -29,7 +29,7 @@ API 地址: `http://api.459695.xyz`
 
 ### 配置 CodeX
 
-- 提供商: Codesome V3 (`https://cc.codesome.ai/v1`)
+- 提供商: custom (`https://api.459695.xyz`)
 - 模型: `gpt-5.5`
 - 写入 `~/.codex/config.toml` 配置文件
-- 写入 `CODESOME_API_KEY` 和 `CODEX_HOME` 环境变量
+- 写入 `OPENAI_API_KEY` 环境变量
