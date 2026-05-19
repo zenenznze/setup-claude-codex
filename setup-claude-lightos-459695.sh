@@ -3,10 +3,10 @@ set -euo pipefail
 
 # ============================================================
 # Claude Code 一键清理旧配置 & 配置脚本 (Linux)
-# 方案: LiteOS 459695 API -> dpsk (deepseek-v4)
+# 方案: LightOS 459695 API -> dpsk (deepseek-v4)
 #
-# 用法: ./setup-claude-liteos-459695.sh [apikey]
-#   LiteOS: 懒猫虚拟环境，base_url = https://api.459695.xyz
+# 用法: ./setup-claude-lightos-459695.sh [apikey]
+#   LightOS: 懒猫虚拟环境，base_url = https://api.459695.xyz
 # ============================================================
 
 RED='\033[0;31m'
@@ -24,8 +24,8 @@ BASE_URL="https://api.459695.xyz"
 
 echo "============================================"
 echo " Claude Code 一键配置脚本 (Linux)"
-echo " 方案: LiteOS 459695 API / dpsk"
-echo " 环境: LiteOS → $BASE_URL"
+echo " 方案: LightOS 459695 API / dpsk"
+echo " 环境: LightOS → $BASE_URL"
 echo "============================================"
 echo ""
 
@@ -97,7 +97,7 @@ log "写入 Claude Code (dpsk) 环境变量到 $TARGET_RC ..."
 
 cat >> "$TARGET_RC" <<DPSKEOF
 
-# ---- Claude Code via LiteOS 459695 API (dpsk) ----
+# ---- Claude Code via LightOS 459695 API (dpsk) ----
 export ANTHROPIC_BASE_URL="${BASE_URL}"
 DPSKEOF
 
