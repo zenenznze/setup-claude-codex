@@ -19,8 +19,8 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()  { echo -e "${RED}[ERR]${NC} $*"; }
 info() { echo -e "${BLUE}[..]${NC} $*"; }
 
-CLAUDE_BASE_URL="http://api.459695.xyz"
-CODEX_BASE_URL="https://api.459695.xyz"
+CLAUDE_BASE_URL="https://api.459695.xyz"
+CODEX_BASE_URL="https://api.459695.xyz/v1"
 
 echo "============================================"
 echo " 一键配置脚本"
@@ -121,24 +121,24 @@ if [[ "$TOOL" == "claude" ]]; then
 
   cat >> "$TARGET_RC" <<EOF
 
-# ---- Claude Code via sub2api ----
+# ---- Claude Code (DeepSeek via api.459695.xyz) ----
 export ANTHROPIC_BASE_URL="${CLAUDE_BASE_URL}"
 export ANTHROPIC_AUTH_TOKEN="${API_KEY}"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
+export ANTHROPIC_MODEL="sonnet"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
 export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
-export CLAUDE_CODE_EFFORT_LEVEL="max"
 EOF
 
   # 使配置在当前终端生效
   export ANTHROPIC_BASE_URL="$CLAUDE_BASE_URL"
   export ANTHROPIC_AUTH_TOKEN="$API_KEY"
-  export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
+  export ANTHROPIC_MODEL="sonnet"
   export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
+  export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
   export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
   export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
-  export CLAUDE_CODE_EFFORT_LEVEL="max"
 
   echo ""
   echo "============================================"
@@ -146,12 +146,18 @@ EOF
   echo "============================================"
   echo "ANTHROPIC_BASE_URL         = ${ANTHROPIC_BASE_URL:-未设置}"
   echo "ANTHROPIC_AUTH_TOKEN       = ${ANTHROPIC_AUTH_TOKEN:0:12}..."
-  echo "ANTHROPIC_DEFAULT_OPUS     = ${ANTHROPIC_DEFAULT_OPUS_MODEL:-未设置}"
+  echo "ANTHROPIC_MODEL            = ${ANTHROPIC_MODEL:-未设置}"
   echo "ANTHROPIC_DEFAULT_SONNET   = ${ANTHROPIC_DEFAULT_SONNET_MODEL:-未设置}"
+  echo "ANTHROPIC_DEFAULT_OPUS     = ${ANTHROPIC_DEFAULT_OPUS_MODEL:-未设置}"
   echo "ANTHROPIC_DEFAULT_HAIKU    = ${ANTHROPIC_DEFAULT_HAIKU_MODEL:-未设置}"
   echo "CLAUDE_CODE_SUBAGENT_MODEL = ${CLAUDE_CODE_SUBAGENT_MODEL:-未设置}"
-  echo "CLAUDE_CODE_EFFORT_LEVEL   = ${CLAUDE_CODE_EFFORT_LEVEL:-未设置}"
   echo ""
+  echo "验证命令:"
+  echo "  echo \$ANTHROPIC_BASE_URL"
+  echo "  echo \$ANTHROPIC_MODEL"
+  echo "  echo \$ANTHROPIC_DEFAULT_SONNET_MODEL"
+  echo "  claude --version"
+  echo "  claude /status"
 
   log "全部完成！新开一个终端，输入 claude 即可使用。"
 
@@ -163,16 +169,15 @@ else
 
   cat > ~/.codex/config.toml <<EOF
 model = "gpt-5.5"
-model_reasoning_effort = "xhigh"
 model_provider = "custom"
-
+model_reasoning_effort = "high"
 disable_response_storage = true
 
 [model_providers.custom]
 name = "custom"
-wire_api = "responses"
-requires_openai_auth = true
 base_url = "${CODEX_BASE_URL}"
+env_key = "OPENAI_API_KEY"
+wire_api = "responses"
 EOF
 
   chmod 600 ~/.codex/config.toml
@@ -198,6 +203,10 @@ EOF
 
   if [[ -f ~/.codex/config.toml ]]; then
     log "~/.codex/config.toml 存在"
+    echo ""
+    echo "关键配置项:"
+    grep -E '^(model |model_provider |model_reasoning_effort )' ~/.codex/config.toml 2>/dev/null || true
+    grep -E '^\s*(name |base_url |env_key |wire_api )' ~/.codex/config.toml 2>/dev/null || true
   else
     err "~/.codex/config.toml 缺失"
   fi
@@ -207,6 +216,14 @@ EOF
   else
     warn "环境变量未在当前终端生效，新开终端即可"
   fi
+
+  echo ""
+  echo "验证命令:"
+  echo "  cat ~/.codex/config.toml"
+  echo "  echo \$OPENAI_API_KEY"
+  echo "  codex --version"
+  echo "  codex /status"
+  echo "  codex exec \"hello\""
 
   echo ""
   log "全部完成！新开一个终端，输入 codex 即可使用。"
