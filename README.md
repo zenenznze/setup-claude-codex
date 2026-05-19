@@ -32,19 +32,18 @@ chmod +x setup-claude-dpsk.sh
 |------|------|------|
 | `setup-claude-dpsk.sh` | Claude Code (cc) | sub2api / dpsk |
 | `setup-claude-lightos-459695.sh` | Claude Code (cc) | LightOS 459695 API / dpsk |
-| `setup-claude-codesome.sh` | Claude Code (cc) | Codesome |
 | `setup-codex-sub2api.sh` | CodeX | sub2api |
-| `setup-codex-codesome.sh` | CodeX | Codesome |
 
 ---
 
-## Base URL：两种环境
+## Base URL：三种环境
 
-sub2api 方案的脚本（dpsk / codex-sub2api）支持两种运行环境，通过第二参数切换：
+sub2api 方案的脚本（dpsk / codex-sub2api）支持三种运行环境，通过第二参数切换：
 
 | 环境 | 参数 | Base URL | 适用场景 |
 |------|------|----------|----------|
-| **LightOS**（默认） | `lightos` 或不传 | `http://host.lzcapp:8888` | 懒猫虚拟环境内部 |
+| **459695**（默认） | `459695` 或不传 | `https://api.459695.xyz` | 通用，459695 API |
+| **LightOS** | `lightos` | `http://host.lzcapp:8888` | 懒猫虚拟环境内部 |
 | **Zen** | `zen` 或 `wsl` | `https://sub2api.zen.heiyu.space` | WSL / 普通 Linux |
 
 > **Zen 环境前置条件**：需要先配好 hclient 组网，否则 `sub2api.zen.heiyu.space` 不可达。详见 `hclient` skill。
@@ -177,15 +176,17 @@ claude
 
 ## 4. setup-codex-sub2api.sh
 
-配置 CodeX（OpenAI CLI），使用 sub2api 方案，模型 gpt-5.5。
+配置 CodeX（OpenAI CLI），使用 sub2api 方案，模型 gpt-5.5。默认走 459695 API。
 
 ### 快速使用
 
 ```bash
 curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-codex-sub2api.sh
 chmod +x setup-codex-sub2api.sh
-# LightOS（默认）
+# 默认（459695 API）
 ./setup-codex-sub2api.sh
+# LightOS
+./setup-codex-sub2api.sh "" lightos
 # Zen / WSL
 ./setup-codex-sub2api.sh "" zen
 ```
@@ -193,8 +194,10 @@ chmod +x setup-codex-sub2api.sh
 也可以直接传 key：
 
 ```bash
-# LightOS
+# 默认（459695 API）
 ./setup-codex-sub2api.sh "你的apikey"
+# LightOS
+./setup-codex-sub2api.sh "你的apikey" lightos
 # Zen / WSL
 ./setup-codex-sub2api.sh "你的apikey" zen
 ```
@@ -203,37 +206,6 @@ chmod +x setup-codex-sub2api.sh
 
 - `~/.codex/config.toml` — CodeX 主配置（模型 gpt-5.5，provider sub2api，base_url 随环境变化）
 - shell 配置中写入 `CODEX_HOME` 和 `SUB2API_API_KEY`
-
-### 验证
-
-```bash
-codex
-```
-
----
-
-## 5. setup-codex-codesome.sh
-
-配置 CodeX（OpenAI CLI），使用 Codesome 方案，模型 gpt-5.5。
-
-### 快速使用
-
-```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-codex-codesome.sh
-chmod +x setup-codex-codesome.sh
-./setup-codex-codesome.sh
-```
-
-也可以直接传 key：
-
-```bash
-./setup-codex-codesome.sh "sk-..."
-```
-
-### 写入内容
-
-- `~/.codex/config.toml` — CodeX 主配置（模型 gpt-5.5，provider codesome，地址 `https://cc.codesome.ai/v1`）
-- shell 配置中写入 `CODEX_HOME` 和 `CODESOME_API_KEY`
 
 ### 验证
 
