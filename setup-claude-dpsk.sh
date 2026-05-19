@@ -5,9 +5,10 @@ set -euo pipefail
 # Claude Code 一键清理旧配置 & 配置脚本 (Linux)
 # 方案: sub2api -> dpsk (deepseek-v4)
 #
-# 用法: ./setup-claude-dpsk.sh [apikey] [lightos|zen]
-#   lightos (默认): 懒猫虚拟环境，base_url = http://host.lzcapp:8888
-#   zen:            WSL / 普通 Linux，base_url = https://sub2api.zen.heiyu.space
+# 用法: ./setup-claude-dpsk.sh [apikey] [459695|lightos|zen]
+#   459695 (默认): 通用环境，base_url = https://api.459695.xyz
+#   lightos:       懒猫虚拟环境，base_url = http://host.lzcapp:8888
+#   zen:           WSL / 普通 Linux，base_url = https://sub2api.zen.heiyu.space
 #                   (需先配好 hclient 组网)
 # ============================================================
 
@@ -22,21 +23,21 @@ err()  { echo -e "${RED}[ERR]${NC} $*"; }
 
 # ---- 0. 解析参数 ----
 API_KEY=""
-ENV_TYPE="lightos"
+ENV_TYPE="459695"
 
 for arg in "${@}"; do
 	case "$arg" in
-		lightos|zen|wsl) ENV_TYPE="$arg" ;;
+		459695|lightos|zen|wsl) ENV_TYPE="$arg" ;;
 		*) API_KEY="$arg" ;;
 	esac
 done
 [[ "$ENV_TYPE" == "wsl" ]] && ENV_TYPE="zen"
 
-if [[ "$ENV_TYPE" == "zen" ]]; then
-	BASE_URL="https://sub2api.zen.heiyu.space"
-else
-	BASE_URL="http://host.lzcapp:8888"
-fi
+case "$ENV_TYPE" in
+	459695) BASE_URL="https://api.459695.xyz" ;;
+	lightos) BASE_URL="http://host.lzcapp:8888" ;;
+	zen)    BASE_URL="https://sub2api.zen.heiyu.space" ;;
+esac
 
 echo "============================================"
 echo " Claude Code 一键配置脚本 (Linux)"
