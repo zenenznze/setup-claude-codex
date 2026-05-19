@@ -34,6 +34,4 @@ chmod +x setup-claude-dpsk.sh
 
 | 脚本 | 用途 |
 |------|------|
-| `setup-claude-codesome.sh` | Claude Code + Codesome API |
 | `setup-codex-sub2api.sh` | CodeX + sub2api（支持 459695/lightos/zen） |
-| `setup-codex-codesome.sh` | CodeX + Codesome API |
