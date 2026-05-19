@@ -29,7 +29,7 @@ echo ""
 # ---- 1. 交互选择: Claude or Codex ----
 echo "请选择要配置的工具:"
 echo "  1) Claude Code（默认 DeepSeek 模型）"
-echo "  2) CodeX（默认 GPT-5 模型）"
+echo "  2) CodeX（默认 GPT-5.5 模型）"
 read -rp "输入 1 或 2 [1]: " CHOICE
 CHOICE="${CHOICE:-1}"
 
@@ -78,7 +78,7 @@ for var in \
   ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL \
   ANTHROPIC_DEFAULT_HAIKU_MODEL CLAUDE_CODE_SUBAGENT_MODEL \
   CLAUDE_CODE_EFFORT_LEVEL CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC \
-  SUB2API_API_KEY CODESOME_API_KEY CODEX_HOME; do
+  OPENAI_API_KEY CODESOME_API_KEY CODEX_HOME; do
   unset "$var" 2>/dev/null || true
 done
 
@@ -88,7 +88,7 @@ for f in ~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv; do
     sed -i.bak -E \
       -e '/^[[:space:]]*export[[:space:]]+ANTHROPIC_/d' \
       -e '/^[[:space:]]*export[[:space:]]+CLAUDE_CODE_/d' \
-      -e '/^[[:space:]]*export[[:space:]]+SUB2API_API_KEY/d' \
+      -e '/^[[:space:]]*export[[:space:]]+OPENAI_API_KEY/d' \
       -e '/^[[:space:]]*export[[:space:]]+CODESOME_API_KEY/d' \
       -e '/^[[:space:]]*unset[[:space:]]+CODEX_HOME/d' \
       -e '/^[[:space:]]*export[[:space:]]+CODEX_HOME/d' \
@@ -156,26 +156,22 @@ EOF
 
 else
   # ---- 5b. 配置 CodeX ----
-  info "写入 CodeX 配置文件 (base_url: ${BASE_URL}/v1)..."
+  info "写入 CodeX 配置文件 (base_url: https://api.459695.xyz)..."
 
   mkdir -p ~/.codex
 
   cat > ~/.codex/config.toml <<EOF
-model = "gpt-5"
-review_model = "gpt-5"
+model = "gpt-5.5"
+review_model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
-model_provider = "sub2api"
+model_provider = "custom"
 disable_response_storage = true
-network_access = "enabled"
-check_for_update_on_startup = false
-model_context_window = 1000000
-model_auto_compact_token_limit = 900000
 
-[model_providers.sub2api]
-name = "Sub2API"
-base_url = "${BASE_URL}/v1"
+[model_providers.custom]
+name = "custom"
+base_url = "https://api.459695.xyz"
 wire_api = "responses"
-env_key = "SUB2API_API_KEY"
+requires_openai_auth = true
 EOF
 
   chmod 600 ~/.codex/config.toml
@@ -187,22 +183,22 @@ EOF
 
   cat >> "$TARGET_RC" <<EOF
 
-# ---- CodeX via sub2api ----
+# ---- CodeX via custom ----
 unset CODEX_HOME
 export CODEX_HOME="\$HOME/.codex"
-export SUB2API_API_KEY='${ESCAPED_KEY}'
+export OPENAI_API_KEY='${ESCAPED_KEY}'
 EOF
 
   # 使配置在当前终端生效
   export CODEX_HOME="$HOME/.codex"
-  export SUB2API_API_KEY="$API_KEY"
+  export OPENAI_API_KEY="$API_KEY"
 
   echo ""
   echo "============================================"
   echo " 配置完成，验证如下:"
   echo "============================================"
   echo "CODEX_HOME       = ${CODEX_HOME:-未设置}"
-  echo "SUB2API_API_KEY  = ${SUB2API_API_KEY:0:12}..."
+  echo "OPENAI_API_KEY  = ${OPENAI_API_KEY:0:12}..."
 
   if [[ -f ~/.codex/config.toml ]]; then
     log "~/.codex/config.toml 存在"
@@ -210,7 +206,7 @@ EOF
     err "~/.codex/config.toml 缺失"
   fi
 
-  if [[ -n "${CODEX_HOME:-}" ]] && [[ -n "${SUB2API_API_KEY:-}" ]]; then
+  if [[ -n "${CODEX_HOME:-}" ]] && [[ -n "${OPENAI_API_KEY:-}" ]]; then
     log "环境变量已生效"
   else
     warn "环境变量未在当前终端生效，新开终端即可"
@@ -218,5 +214,5 @@ EOF
 
   echo ""
   log "全部完成！新开一个终端，输入 codex 即可使用。"
-  log "模型: gpt-5，提供商: sub2api"
+  log "模型: gpt-5.5，提供商: custom"
 fi
