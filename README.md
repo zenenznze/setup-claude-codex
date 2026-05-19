@@ -87,7 +87,6 @@ chmod +x setup-claude-dpsk.sh
 |------|---------|-----|
 | `ANTHROPIC_BASE_URL` | `http://host.lzcapp:8888` | `https://sub2api.zen.heiyu.space` |
 | `ANTHROPIC_AUTH_TOKEN` | 你输入的 key | 你输入的 key |
-| `ANTHROPIC_MODEL` | `deepseek-v4-pro[1m]` | `deepseek-v4-pro[1m]` |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `deepseek-v4-pro[1m]` | `deepseek-v4-pro[1m]` |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | `deepseek-v4-flash` | `deepseek-v4-flash` |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `deepseek-v4-flash` | `deepseek-v4-flash` |
@@ -126,7 +125,6 @@ chmod +x setup-claude-liteos-459695.sh
 |------|-----|
 | `ANTHROPIC_BASE_URL` | `https://api.459695.xyz` |
 | `ANTHROPIC_AUTH_TOKEN` | 你输入的 key |
-| `ANTHROPIC_MODEL` | `deepseek-v4-pro[1m]` |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `deepseek-v4-pro[1m]` |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | `deepseek-v4-flash` |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `deepseek-v4-flash` |

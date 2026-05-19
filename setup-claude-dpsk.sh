@@ -121,7 +121,6 @@ DPSKEOF
 echo "export ANTHROPIC_AUTH_TOKEN=\"${API_KEY}\"" >> "$TARGET_RC"
 
 cat >> "$TARGET_RC" <<'DPSKEOF'
-export ANTHROPIC_MODEL="deepseek-v4-pro[1m]"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
@@ -136,7 +135,6 @@ source "$TARGET_RC" 2>/dev/null || true
 
 export ANTHROPIC_BASE_URL="$BASE_URL"
 export ANTHROPIC_AUTH_TOKEN="$API_KEY"
-export ANTHROPIC_MODEL="deepseek-v4-pro[1m]"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
@@ -150,7 +148,6 @@ echo " 配置完成，验证如下:"
 echo "============================================"
 echo "ANTHROPIC_BASE_URL         = ${ANTHROPIC_BASE_URL:-未设置}"
 echo "ANTHROPIC_AUTH_TOKEN       = ${ANTHROPIC_AUTH_TOKEN:0:12}..."
-echo "ANTHROPIC_MODEL            = ${ANTHROPIC_MODEL:-未设置}"
 echo "ANTHROPIC_DEFAULT_OPUS     = ${ANTHROPIC_DEFAULT_OPUS_MODEL:-未设置}"
 echo "ANTHROPIC_DEFAULT_SONNET   = ${ANTHROPIC_DEFAULT_SONNET_MODEL:-未设置}"
 echo "ANTHROPIC_DEFAULT_HAIKU    = ${ANTHROPIC_DEFAULT_HAIKU_MODEL:-未设置}"
