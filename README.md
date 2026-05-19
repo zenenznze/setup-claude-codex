@@ -11,7 +11,7 @@ chmod +x setup.sh
 ```
 
 脚本会交互式询问：
-1. 选择配置 **Claude Code**（DeepSeek 模型）还是 **CodeX**（GPT-5 模型）
+1. 选择配置 **Claude Code**（DeepSeek 模型）还是 **CodeX**（GPT-5.5 模型）
 2. 输入 API Key
 
 API 地址固定为 `http://api.459695.xyz`，无需额外参数。
@@ -29,6 +29,6 @@ API 地址固定为 `http://api.459695.xyz`，无需额外参数。
 
 ### 配置 CodeX
 
-- 模型: `gpt-5`
+- 模型: `gpt-5.5`
 - 写入 `~/.codex/config.toml` 配置文件
-- 写入 `SUB2API_API_KEY` 和 `CODEX_HOME` 环境变量
+- 写入 `OPENAI_API_KEY` 和 `CODEX_HOME` 环境变量
