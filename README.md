@@ -1,37 +1,34 @@
 # setup-claude-codex
 
-Linux 上一键配置 Claude Code / CodeX 的脚本集合。
+Linux 上一键配置 Claude Code / CodeX 的交互式脚本。
 
----
-
-## 主脚本：setup-claude-dpsk.sh
-
-配置 Claude Code + deepseek-v4，默认走 459695 API。
+## 用法
 
 ```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-claude-dpsk.sh
-chmod +x setup-claude-dpsk.sh
-./setup-claude-dpsk.sh
+curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup.sh
+chmod +x setup.sh
+./setup.sh
 ```
 
-或直接传 key：`./setup-claude-dpsk.sh "你的apikey"`
+脚本会交互式询问：
+1. 选择配置 **Claude Code**（DeepSeek 模型）还是 **CodeX**（GPT-5 模型）
+2. 输入 API Key
 
-写入的变量：`ANTHROPIC_BASE_URL`、`ANTHROPIC_AUTH_TOKEN`、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、`ANTHROPIC_DEFAULT_HAIKU_MODEL`、`CLAUDE_CODE_SUBAGENT_MODEL`、`CLAUDE_CODE_EFFORT_LEVEL`
+API 地址固定为 `http://api.459695.xyz`，无需额外参数。
 
-### 环境切换
+### 配置 Claude Code
 
-`./setup-claude-dpsk.sh [apikey] [459695|lightos|zen]`
+写入的环境变量：
+- `ANTHROPIC_BASE_URL` — API 地址
+- `ANTHROPIC_AUTH_TOKEN` — API Key
+- `ANTHROPIC_DEFAULT_OPUS_MODEL` — `deepseek-v4-pro[1m]`
+- `ANTHROPIC_DEFAULT_SONNET_MODEL` — `deepseek-v4-flash`
+- `ANTHROPIC_DEFAULT_HAIKU_MODEL` — `deepseek-v4-flash`
+- `CLAUDE_CODE_SUBAGENT_MODEL` — `deepseek-v4-flash`
+- `CLAUDE_CODE_EFFORT_LEVEL` — `max`
 
-| 参数 | Base URL |
-|------|----------|
-| `459695`（默认） | `https://api.459695.xyz` |
-| `lightos` | `http://host.lzcapp:8888` |
-| `zen` | `https://sub2api.zen.heiyu.space` |
+### 配置 CodeX
 
----
-
-## 其他脚本
-
-| 脚本 | 用途 |
-|------|------|
-| `setup-codex-sub2api.sh` | CodeX + sub2api（支持 459695/lightos/zen） |
+- 模型: `gpt-5`
+- 写入 `~/.codex/config.toml` 配置文件
+- 写入 `SUB2API_API_KEY` 和 `CODEX_HOME` 环境变量
