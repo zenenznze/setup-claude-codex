@@ -3,7 +3,8 @@ set -euo pipefail
 
 # ============================================================
 # 一键配置脚本 (Claude Code / CodeX)
-# API: http://api.459695.xyz
+# Claude Code: DeepSeek 模型 (api.459695.xyz)
+# CodeX:       Codesome V3 GPT-5.5 (cc.codesome.ai)
 # 交互式选择配置 Claude Code 或 CodeX
 # ============================================================
 
@@ -18,11 +19,11 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()  { echo -e "${RED}[ERR]${NC} $*"; }
 info() { echo -e "${BLUE}[..]${NC} $*"; }
 
-BASE_URL="http://api.459695.xyz"
+CLAUDE_BASE_URL="http://api.459695.xyz"
+CODEX_BASE_URL="https://cc.codesome.ai/v1"
 
 echo "============================================"
 echo " 一键配置脚本"
-echo " API: ${BASE_URL}"
 echo "============================================"
 echo ""
 
@@ -121,7 +122,7 @@ if [[ "$TOOL" == "claude" ]]; then
   cat >> "$TARGET_RC" <<EOF
 
 # ---- Claude Code via sub2api ----
-export ANTHROPIC_BASE_URL="${BASE_URL}"
+export ANTHROPIC_BASE_URL="${CLAUDE_BASE_URL}"
 export ANTHROPIC_AUTH_TOKEN="${API_KEY}"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
@@ -131,7 +132,7 @@ export CLAUDE_CODE_EFFORT_LEVEL="max"
 EOF
 
   # 使配置在当前终端生效
-  export ANTHROPIC_BASE_URL="$BASE_URL"
+  export ANTHROPIC_BASE_URL="$CLAUDE_BASE_URL"
   export ANTHROPIC_AUTH_TOKEN="$API_KEY"
   export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
   export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
@@ -155,8 +156,8 @@ EOF
   log "全部完成！新开一个终端，输入 claude 即可使用。"
 
 else
-  # ---- 5b. 配置 CodeX ----
-  info "写入 CodeX 配置文件 (base_url: https://api.459695.xyz)..."
+  # ---- 5b. 配置 CodeX（Codesome V3） ----
+  info "写入 CodeX 配置文件 (Codesome V3: ${CODEX_BASE_URL})..."
 
   mkdir -p ~/.codex
 
@@ -164,14 +165,20 @@ else
 model = "gpt-5.5"
 review_model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
-model_provider = "custom"
-disable_response_storage = true
+model_provider = "codesome"
 
-[model_providers.custom]
-name = "custom"
-base_url = "https://api.459695.xyz"
+disable_response_storage = true
+network_access = "enabled"
+check_for_update_on_startup = false
+
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
+
+[model_providers.codesome]
+name = "Codesome V3"
+base_url = "${CODEX_BASE_URL}"
 wire_api = "responses"
-requires_openai_auth = true
+env_key = "CODESOME_API_KEY"
 EOF
 
   chmod 600 ~/.codex/config.toml
@@ -183,22 +190,22 @@ EOF
 
   cat >> "$TARGET_RC" <<EOF
 
-# ---- CodeX via custom ----
+# ---- CodeX via Codesome V3 ----
 unset CODEX_HOME
 export CODEX_HOME="\$HOME/.codex"
-export OPENAI_API_KEY='${ESCAPED_KEY}'
+export CODESOME_API_KEY='${ESCAPED_KEY}'
 EOF
 
   # 使配置在当前终端生效
   export CODEX_HOME="$HOME/.codex"
-  export OPENAI_API_KEY="$API_KEY"
+  export CODESOME_API_KEY="$API_KEY"
 
   echo ""
   echo "============================================"
   echo " 配置完成，验证如下:"
   echo "============================================"
-  echo "CODEX_HOME       = ${CODEX_HOME:-未设置}"
-  echo "OPENAI_API_KEY  = ${OPENAI_API_KEY:0:12}..."
+  echo "CODEX_HOME         = ${CODEX_HOME:-未设置}"
+  echo "CODESOME_API_KEY   = ${CODESOME_API_KEY:0:12}..."
 
   if [[ -f ~/.codex/config.toml ]]; then
     log "~/.codex/config.toml 存在"
@@ -206,7 +213,7 @@ EOF
     err "~/.codex/config.toml 缺失"
   fi
 
-  if [[ -n "${CODEX_HOME:-}" ]] && [[ -n "${OPENAI_API_KEY:-}" ]]; then
+  if [[ -n "${CODEX_HOME:-}" ]] && [[ -n "${CODESOME_API_KEY:-}" ]]; then
     log "环境变量已生效"
   else
     warn "环境变量未在当前终端生效，新开终端即可"
@@ -214,5 +221,5 @@ EOF
 
   echo ""
   log "全部完成！新开一个终端，输入 codex 即可使用。"
-  log "模型: gpt-5.5，提供商: custom"
+  log "模型: gpt-5.5，提供商: Codesome V3 (${CODEX_BASE_URL})"
 fi
