@@ -14,9 +14,9 @@ chmod +x setup.sh
 1. 选择配置 **Claude Code**（DeepSeek 模型）还是 **CodeX**（GPT-5.5 模型）
 2. 输入 API Key
 
-API 地址固定为 `http://api.459695.xyz`，无需额外参数。
-
 ### 配置 Claude Code
+
+API 地址: `http://api.459695.xyz`
 
 写入的环境变量：
 - `ANTHROPIC_BASE_URL` — API 地址
@@ -29,6 +29,7 @@ API 地址固定为 `http://api.459695.xyz`，无需额外参数。
 
 ### 配置 CodeX
 
+- 提供商: Codesome V3 (`https://cc.codesome.ai/v1`)
 - 模型: `gpt-5.5`
 - 写入 `~/.codex/config.toml` 配置文件
-- 写入 `OPENAI_API_KEY` 和 `CODEX_HOME` 环境变量
+- 写入 `CODESOME_API_KEY` 和 `CODEX_HOME` 环境变量
