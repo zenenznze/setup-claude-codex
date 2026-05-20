@@ -3,8 +3,8 @@ set -euo pipefail
 
 # ============================================================
 # 一键配置脚本 (Claude Code / CodeX)
-# Claude Code: DeepSeek 模型 (api.459695.xyz)
-# CodeX:       GPT-5.5 (api.459695.xyz)
+# Claude Code: ~/.claude/settings.json
+# CodeX:       ~/.codex/auth.json + ~/.codex/config.toml
 # 交互式选择配置 Claude Code 或 CodeX
 # ============================================================
 
@@ -20,7 +20,103 @@ err()  { echo -e "${RED}[ERR]${NC} $*"; }
 info() { echo -e "${BLUE}[..]${NC} $*"; }
 
 CLAUDE_BASE_URL="https://api.459695.xyz"
-CODEX_BASE_URL="https://api.459695.xyz/v1"
+CODEX_BASE_URL="https://api.459695.xyz"
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+CODEX_AUTH="$HOME/.codex/auth.json"
+CODEX_CONFIG="$HOME/.codex/config.toml"
+RC_FILES=(
+  "$HOME/.bashrc"
+  "$HOME/.bash_profile"
+  "$HOME/.zshrc"
+  "$HOME/.profile"
+  "$HOME/.zprofile"
+  "$HOME/.zshenv"
+)
+
+mask_secret() {
+  local secret="${1:-}"
+  if (( ${#secret} <= 12 )); then
+    printf '***'
+  else
+    printf '%s...' "${secret:0:12}"
+  fi
+}
+
+json_escape() {
+  local value="${1:-}"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
+unset_vars() {
+  local var
+  for var in "$@"; do
+    unset "$var" 2>/dev/null || true
+  done
+}
+
+cleanup_claude_env() {
+  info "清理 Claude 相关环境变量残留..."
+
+  unset_vars \
+    ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN ANTHROPIC_MODEL \
+    ANTHROPIC_DEFAULT_OPUS_MODEL_NAME ANTHROPIC_DEFAULT_OPUS_MODEL \
+    ANTHROPIC_DEFAULT_SONNET_MODEL_NAME ANTHROPIC_DEFAULT_SONNET_MODEL \
+    ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME ANTHROPIC_DEFAULT_HAIKU_MODEL \
+    CLAUDE_CODE_SUBAGENT_MODEL CLAUDE_CODE_EFFORT_LEVEL \
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
+
+  local f
+  for f in "${RC_FILES[@]}"; do
+    if [[ -f "$f" ]]; then
+      sed -i.bak -E \
+        -e '/^[[:space:]]*#[[:space:]]*----[[:space:]]*Claude Code/d' \
+        -e '/^[[:space:]]*(export[[:space:]]+)?ANTHROPIC_[A-Za-z0-9_]*=/d' \
+        -e '/^[[:space:]]*(export[[:space:]]+)?CLAUDE_CODE_[A-Za-z0-9_]*=/d' \
+        -e '/^[[:space:]]*unset[[:space:]]+ANTHROPIC_[A-Za-z0-9_]*$/d' \
+        -e '/^[[:space:]]*unset[[:space:]]+CLAUDE_CODE_[A-Za-z0-9_]*$/d' \
+        "$f"
+    fi
+  done
+
+  rm -f "$HOME/.claude/config.json"
+}
+
+cleanup_codex_env() {
+  info "清理 CodeX 相关环境变量残留..."
+
+  unset_vars OPENAI_API_KEY CODEX_HOME
+
+  local f
+  for f in "${RC_FILES[@]}"; do
+    if [[ -f "$f" ]]; then
+      sed -i.bak -E \
+        -e '/^[[:space:]]*#[[:space:]]*----[[:space:]]*CodeX/d' \
+        -e '/^[[:space:]]*(export[[:space:]]+)?OPENAI_API_KEY=/d' \
+        -e '/^[[:space:]]*(export[[:space:]]+)?CODEX_HOME=/d' \
+        -e '/^[[:space:]]*unset[[:space:]]+CODEX_HOME$/d' \
+        "$f"
+    fi
+  done
+}
+
+check_residue() {
+  local pattern="$1"
+  local label="$2"
+  local residue
+  residue=$(grep -nE "$pattern" "${RC_FILES[@]}" 2>/dev/null || true)
+
+  if [[ -z "$residue" ]]; then
+    log "$label 环境变量残留已清理"
+  else
+    warn "$label 仍有环境变量残留，请手动检查:"
+    echo "$residue"
+  fi
+}
 
 echo "============================================"
 echo " 一键配置脚本"
@@ -54,173 +150,127 @@ echo "配置工具: $TOOL_NAME"
 echo ""
 
 # ---- 2. 索取 API Key ----
-read -rsp "请输入你的 API Key: " API_KEY
+if [[ "$TOOL" == "claude" ]]; then
+  KEY_NAME="ANTHROPIC_AUTH_TOKEN"
+else
+  KEY_NAME="OPENAI_API_KEY"
+fi
+
+read -rsp "请输入你的 ${KEY_NAME}: " API_KEY
 echo ""
 
 if [[ -z "$API_KEY" ]]; then
-  err "API Key 不能为空"
+  err "${KEY_NAME} 不能为空"
   exit 1
 fi
 
 # ---- 3. 检测 shell ----
 CURRENT_SHELL=$(basename "${SHELL:-/bin/bash}")
-case "$CURRENT_SHELL" in
-  zsh)  TARGET_RC="$HOME/.zshrc" ;;
-  *)    TARGET_RC="$HOME/.bashrc" ;;
-esac
-log "检测到 shell: $CURRENT_SHELL，配置文件: $TARGET_RC"
+log "检测到 shell: $CURRENT_SHELL，将只清理 $TOOL_NAME 相关环境变量，不写入 shell rc"
 
-# ---- 4. 大扫除：清理残留配置 ----
-info "开始清理旧配置..."
-
-# 清理当前终端环境变量
-for var in \
-  ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN ANTHROPIC_MODEL \
-  ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL \
-  ANTHROPIC_DEFAULT_HAIKU_MODEL CLAUDE_CODE_SUBAGENT_MODEL \
-  CLAUDE_CODE_EFFORT_LEVEL CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC \
-  OPENAI_API_KEY CODESOME_API_KEY CODEX_HOME; do
-  unset "$var" 2>/dev/null || true
-done
-
-# 清理 shell 配置文件中的旧配置
-for f in ~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv; do
-  if [[ -f "$f" ]]; then
-    sed -i.bak -E \
-      -e '/^[[:space:]]*export[[:space:]]+ANTHROPIC_/d' \
-      -e '/^[[:space:]]*export[[:space:]]+CLAUDE_CODE_/d' \
-      -e '/^[[:space:]]*export[[:space:]]+OPENAI_API_KEY/d' \
-      -e '/^[[:space:]]*export[[:space:]]+CODESOME_API_KEY/d' \
-      -e '/^[[:space:]]*unset[[:space:]]+CODEX_HOME/d' \
-      -e '/^[[:space:]]*export[[:space:]]+CODEX_HOME/d' \
-      -e '/^[[:space:]]*ANTHROPIC_/d' \
-      -e '/^[[:space:]]*CLAUDE_CODE_/d' \
-      "$f"
-  fi
-done
-
-# 删除旧配置文件
-rm -f ~/.claude/config.json
-rm -f ~/.claude/settings.json
-rm -f ~/.codex/config.toml
-
-# 验证清理
-RC_FILES=(~/.bashrc ~/.bash_profile ~/.zshrc ~/.profile ~/.zprofile ~/.zshenv)
-RESIDUE=$(grep -nE 'ANTHROPIC|CLAUDE_CODE|SUB2API|CODESOME|CODEX_HOME' "${RC_FILES[@]}" 2>/dev/null || true)
-if [[ -z "$RESIDUE" ]]; then
-  log "旧配置已清理干净"
-else
-  warn "仍有残留，请手动检查:"
-  echo "$RESIDUE"
-fi
-
-# ---- 5. 配置目标工具 ----
+# ---- 4. 配置目标工具 ----
 if [[ "$TOOL" == "claude" ]]; then
-  # ---- 5a. 配置 Claude Code ----
-  info "写入 Claude Code 环境变量到 $TARGET_RC ..."
+  # ---- 4a. 配置 Claude Code ----
+  cleanup_claude_env
+  check_residue 'ANTHROPIC_|CLAUDE_CODE_' "Claude"
 
-  cat >> "$TARGET_RC" <<EOF
+  info "写入 Claude Code 配置文件: $CLAUDE_SETTINGS ..."
+  mkdir -p "$HOME/.claude"
+  API_KEY_JSON=$(json_escape "$API_KEY")
 
-# ---- Claude Code (DeepSeek via api.459695.xyz) ----
-export ANTHROPIC_BASE_URL="${CLAUDE_BASE_URL}"
-export ANTHROPIC_AUTH_TOKEN="${API_KEY}"
-export ANTHROPIC_MODEL="sonnet"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
-export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
+  cat > "$CLAUDE_SETTINGS" <<EOF
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "${CLAUDE_BASE_URL}",
+    "ANTHROPIC_AUTH_TOKEN": "${API_KEY_JSON}",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "deepseek-v4-pro[1m]",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1M]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseek-v4-flash",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1M]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "deepseek-v4-flash",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash"
+  },
+  "includeCoAuthoredBy": false
+}
 EOF
 
-  # 使配置在当前终端生效
-  export ANTHROPIC_BASE_URL="$CLAUDE_BASE_URL"
-  export ANTHROPIC_AUTH_TOKEN="$API_KEY"
-  export ANTHROPIC_MODEL="sonnet"
-  export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
-  export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
-  export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
-  export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
+  chmod 600 "$CLAUDE_SETTINGS"
+  log "$CLAUDE_SETTINGS 已创建"
 
   echo ""
   echo "============================================"
   echo " 配置完成，验证如下:"
   echo "============================================"
-  echo "ANTHROPIC_BASE_URL         = ${ANTHROPIC_BASE_URL:-未设置}"
-  echo "ANTHROPIC_AUTH_TOKEN       = ${ANTHROPIC_AUTH_TOKEN:0:12}..."
-  echo "ANTHROPIC_MODEL            = ${ANTHROPIC_MODEL:-未设置}"
-  echo "ANTHROPIC_DEFAULT_SONNET   = ${ANTHROPIC_DEFAULT_SONNET_MODEL:-未设置}"
-  echo "ANTHROPIC_DEFAULT_OPUS     = ${ANTHROPIC_DEFAULT_OPUS_MODEL:-未设置}"
-  echo "ANTHROPIC_DEFAULT_HAIKU    = ${ANTHROPIC_DEFAULT_HAIKU_MODEL:-未设置}"
-  echo "CLAUDE_CODE_SUBAGENT_MODEL = ${CLAUDE_CODE_SUBAGENT_MODEL:-未设置}"
+  echo "配置文件                  = $CLAUDE_SETTINGS"
+  echo "ANTHROPIC_BASE_URL         = ${CLAUDE_BASE_URL}"
+  echo "ANTHROPIC_AUTH_TOKEN       = $(mask_secret "$API_KEY")"
+  echo "SONNET                     = deepseek-v4-flash[1M]"
+  echo "OPUS                       = deepseek-v4-pro[1M]"
+  echo "HAIKU                      = deepseek-v4-flash"
   echo ""
   echo "验证命令:"
-  echo "  echo \$ANTHROPIC_BASE_URL"
-  echo "  echo \$ANTHROPIC_MODEL"
-  echo "  echo \$ANTHROPIC_DEFAULT_SONNET_MODEL"
+  echo "  test -f ~/.claude/settings.json && echo OK"
   echo "  claude --version"
   echo "  claude /status"
 
   log "全部完成！新开一个终端，输入 claude 即可使用。"
 
 else
-  # ---- 5b. 配置 CodeX（custom provider） ----
+  # ---- 4b. 配置 CodeX（custom provider） ----
+  cleanup_codex_env
+  check_residue 'OPENAI_API_KEY|CODEX_HOME' "CodeX"
+
   info "写入 CodeX 配置文件 (custom: ${CODEX_BASE_URL})..."
+  mkdir -p "$HOME/.codex"
+  API_KEY_JSON=$(json_escape "$API_KEY")
 
-  mkdir -p ~/.codex
+  cat > "$CODEX_AUTH" <<EOF
+{
+  "OPENAI_API_KEY": "${API_KEY_JSON}"
+}
+EOF
 
-  cat > ~/.codex/config.toml <<EOF
-model = "gpt-5.5"
+  cat > "$CODEX_CONFIG" <<EOF
 model_provider = "custom"
-model_reasoning_effort = "high"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
 disable_response_storage = true
 
+[model_providers]
 [model_providers.custom]
 name = "custom"
-base_url = "${CODEX_BASE_URL}"
-env_key = "OPENAI_API_KEY"
 wire_api = "responses"
+requires_openai_auth = true
+base_url = "${CODEX_BASE_URL}"
+
+[features]
+goals = true
 EOF
 
-  chmod 600 ~/.codex/config.toml
-  log "~/.codex/config.toml 已创建"
-
-  # 写入环境变量
-  info "写入环境变量到 $TARGET_RC ..."
-
-  cat >> "$TARGET_RC" <<EOF
-
-# ---- CodeX via custom provider ----
-export OPENAI_API_KEY="${API_KEY}"
-EOF
-
-  # 使配置在当前终端生效
-  export OPENAI_API_KEY="$API_KEY"
+  chmod 600 "$CODEX_AUTH" "$CODEX_CONFIG"
+  log "$CODEX_AUTH 已创建"
+  log "$CODEX_CONFIG 已创建"
 
   echo ""
   echo "============================================"
   echo " 配置完成，验证如下:"
   echo "============================================"
-  echo "OPENAI_API_KEY   = ${OPENAI_API_KEY:0:12}..."
+  echo "认证文件       = $CODEX_AUTH"
+  echo "OPENAI_API_KEY = $(mask_secret "$API_KEY")"
 
-  if [[ -f ~/.codex/config.toml ]]; then
-    log "~/.codex/config.toml 存在"
+  if [[ -f "$CODEX_CONFIG" && -f "$CODEX_AUTH" ]]; then
+    log "CodeX 配置文件存在"
     echo ""
     echo "关键配置项:"
-    grep -E '^(model |model_provider |model_reasoning_effort )' ~/.codex/config.toml 2>/dev/null || true
-    grep -E '^\s*(name |base_url |env_key |wire_api )' ~/.codex/config.toml 2>/dev/null || true
+    grep -E '^(model_provider|model|model_reasoning_effort|disable_response_storage)' "$CODEX_CONFIG" 2>/dev/null || true
+    grep -E '^\s*(name|base_url|wire_api|requires_openai_auth)' "$CODEX_CONFIG" 2>/dev/null || true
   else
-    err "~/.codex/config.toml 缺失"
-  fi
-
-  if [[ -n "${OPENAI_API_KEY:-}" ]]; then
-    log "环境变量已生效"
-  else
-    warn "环境变量未在当前终端生效，新开终端即可"
+    err "CodeX 配置文件缺失"
   fi
 
   echo ""
   echo "验证命令:"
-  echo "  cat ~/.codex/config.toml"
-  echo "  echo \$OPENAI_API_KEY"
+  echo "  test -f ~/.codex/auth.json && test -f ~/.codex/config.toml && echo OK"
   echo "  codex --version"
   echo "  codex /status"
   echo "  codex exec \"hello\""

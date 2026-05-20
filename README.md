@@ -2,6 +2,11 @@
 
 Linux 上一键配置 Claude Code / CodeX 的交互式脚本。
 
+脚本按目标工具隔离处理：
+- 配置 Claude Code 时，只清理 Claude 相关环境变量残留，不删除 CodeX 配置。
+- 配置 CodeX 时，只清理 CodeX 相关环境变量残留，不删除 Claude 配置。
+- 新配置直接写入工具自己的配置文件，不再把 API Key 写入 shell rc 环境变量。
+
 ## 用法
 
 ```bash
@@ -12,43 +17,79 @@ chmod +x setup.sh
 
 脚本会交互式询问：
 1. 选择配置 **Claude Code**（DeepSeek 模型）还是 **CodeX**（GPT-5.5 模型）
-2. 输入 API Key
+2. 输入对应工具的 API Key / Token
 
 ### 配置 Claude Code
 
 API 地址: `https://api.459695.xyz`
 
-写入的环境变量：
-- `ANTHROPIC_BASE_URL` — API 地址
-- `ANTHROPIC_AUTH_TOKEN` — API Key
-- `ANTHROPIC_MODEL` — `sonnet`（强制启动模型）
-- `ANTHROPIC_DEFAULT_SONNET_MODEL` — `deepseek-v4-flash`
-- `ANTHROPIC_DEFAULT_OPUS_MODEL` — `deepseek-v4-pro`
-- `ANTHROPIC_DEFAULT_HAIKU_MODEL` — `deepseek-v4-flash`
-- `CLAUDE_CODE_SUBAGENT_MODEL` — `deepseek-v4-flash`
+写入 `~/.claude/settings.json`：
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.459695.xyz",
+    "ANTHROPIC_AUTH_TOKEN": "<你的 Token>",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "deepseek-v4-pro[1m]",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1M]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseek-v4-flash",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1M]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "deepseek-v4-flash",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash"
+  },
+  "includeCoAuthoredBy": false
+}
+```
+
+配置前会从常见 shell rc 文件中清理 `ANTHROPIC_*` 和 `CLAUDE_CODE_*` 环境变量残留。
 
 验证命令：
 ```bash
-echo $ANTHROPIC_BASE_URL
-echo $ANTHROPIC_MODEL
-echo $ANTHROPIC_DEFAULT_SONNET_MODEL
+test -f ~/.claude/settings.json && echo OK
 claude --version
 claude /status
 ```
 
 ### 配置 CodeX
 
-- 提供商: `custom`（`https://api.459695.xyz/v1`）
-- 认证: `env_key = "OPENAI_API_KEY"`
+- 提供商: `custom`（`https://api.459695.xyz`）
+- 认证文件: `~/.codex/auth.json`
+- 配置文件: `~/.codex/config.toml`
 - 模型: `gpt-5.5`
-- reasoning_effort: `high`
-- 写入 `~/.codex/config.toml` 配置文件
-- 写入 `OPENAI_API_KEY` 环境变量
+- reasoning_effort: `xhigh`
+
+写入 `~/.codex/auth.json`：
+
+```json
+{
+  "OPENAI_API_KEY": "<你的 API Key>"
+}
+```
+
+写入 `~/.codex/config.toml`：
+
+```toml
+model_provider = "custom"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+disable_response_storage = true
+
+[model_providers]
+[model_providers.custom]
+name = "custom"
+wire_api = "responses"
+requires_openai_auth = true
+base_url = "https://api.459695.xyz"
+
+[features]
+goals = true
+```
+
+配置前会从常见 shell rc 文件中清理 `OPENAI_API_KEY` 和 `CODEX_HOME` 环境变量残留。
 
 验证命令：
 ```bash
-cat ~/.codex/config.toml
-echo $OPENAI_API_KEY
+test -f ~/.codex/auth.json && test -f ~/.codex/config.toml && echo OK
 codex --version
 codex /status
 codex exec "hello"
