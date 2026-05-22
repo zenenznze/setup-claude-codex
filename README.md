@@ -50,6 +50,35 @@ claude --version
 claude /status
 ```
 
+### DeepSeek 直连临时脚本
+
+如果不想经过中转 API，可以直接使用 DeepSeek 官方 endpoint：
+
+```bash
+curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-deepseek.sh
+chmod +x setup-deepseek.sh
+./setup-deepseek.sh
+```
+
+API 地址: `https://api.deepseek.com/anthropic`
+
+写入 `~/.claude/settings.json`：
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "<你的 DeepSeek API Key>",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1m]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash[1m]"
+  },
+  "includeCoAuthoredBy": false
+}
+```
+
+验证命令与上方 Claude Code 配置相同。
+
 ### 配置 CodeX
 
 - 提供商: `custom`（`https://api.459695.xyz`）
