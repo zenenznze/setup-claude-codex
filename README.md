@@ -19,7 +19,7 @@ Linux 上一键配置 Claude Code / CodeX 的交互式脚本。
 ## 用法
 
 ```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup.sh
+curl -O https://gitea.joe.heiyu.space/joe/setup-claude-codex/raw/branch/main/setup.sh
 chmod +x setup.sh
 ./setup.sh
 ```
@@ -64,7 +64,7 @@ claude /status
 如果不想经过中转 API，可以直接使用 DeepSeek 官方 endpoint：
 
 ```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-deepseek.sh
+curl -O https://gitea.joe.heiyu.space/joe/setup-claude-codex/raw/branch/main/setup-deepseek.sh
 chmod +x setup-deepseek.sh
 ./setup-deepseek.sh
 ```
@@ -138,7 +138,7 @@ codex exec "hello"
 如果你的 Sub2API 实例运行在 `https://sub2api.joe.heiyu.space`，可以直接使用：
 
 ```bash
-curl -O https://raw.githubusercontent.com/zenenznze/setup-claude-codex/main/setup-sub2api.sh
+curl -O https://gitea.joe.heiyu.space/joe/setup-claude-codex/raw/branch/main/setup-sub2api.sh
 chmod +x setup-sub2api.sh
 ./setup-sub2api.sh
 ```
