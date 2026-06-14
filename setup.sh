@@ -66,6 +66,7 @@ cleanup_claude_env() {
     ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN ANTHROPIC_MODEL \
     ANTHROPIC_DEFAULT_OPUS_MODEL \
     ANTHROPIC_DEFAULT_SONNET_MODEL \
+    ANTHROPIC_DEFAULT_SONNET_MODEL_NAME \
     ANTHROPIC_DEFAULT_HAIKU_MODEL \
     CLAUDE_CODE_SUBAGENT_MODEL CLAUDE_CODE_EFFORT_LEVEL \
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
@@ -183,9 +184,10 @@ if [[ "$TOOL" == "claude" ]]; then
   "env": {
     "ANTHROPIC_BASE_URL": "${CLAUDE_BASE_URL}",
     "ANTHROPIC_AUTH_TOKEN": "${API_KEY_JSON}",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1m]",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash[1m]"
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1M]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseek-v4-flash"
   },
   "includeCoAuthoredBy": false
 }
@@ -201,9 +203,10 @@ EOF
   echo "配置文件                  = $CLAUDE_SETTINGS"
   echo "ANTHROPIC_BASE_URL         = ${CLAUDE_BASE_URL}"
   echo "ANTHROPIC_AUTH_TOKEN       = $(mask_secret "$API_KEY")"
+  echo "HAIKU                      = deepseek-v4-flash"
   echo "OPUS                       = deepseek-v4-pro[1m]"
-  echo "SONNET                     = deepseek-v4-flash[1m]"
-  echo "HAIKU                      = deepseek-v4-flash[1m]"
+  echo "SONNET                     = deepseek-v4-flash[1M]"
+  echo "SONNET_MODEL_NAME          = deepseek-v4-flash"
   echo ""
   echo "验证命令:"
   echo "  test -f ~/.claude/settings.json && echo OK"
