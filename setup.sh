@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # ============================================================
-# 一键配置脚本 (Claude Code / CodeX)
+# 统一配置入口 — Claude Code / CodeX 多提供商支持
 # Claude Code: ~/.claude/settings.json
 # CodeX:       ~/.codex/auth.json + ~/.codex/config.toml
-# 交互式选择配置 Claude Code 或 CodeX
+# 交互式：先选工具，再选提供商
 # ============================================================
 
 RED='\033[0;31m'
@@ -19,8 +19,6 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()  { echo -e "${RED}[ERR]${NC} $*"; }
 info() { echo -e "${BLUE}[..]${NC} $*"; }
 
-CLAUDE_BASE_URL="https://api.459695.xyz"
-CODEX_BASE_URL="https://api.459695.xyz"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 CODEX_AUTH="$HOME/.codex/auth.json"
 CODEX_CONFIG="$HOME/.codex/config.toml"
@@ -32,6 +30,15 @@ RC_FILES=(
   "$HOME/.zprofile"
   "$HOME/.zshenv"
 )
+
+# ---- 提供商列表（URL + 显示名 + 模型映射） ----
+declare -A PROVIDER_URL
+PROVIDER_URL["default:claude"]="https://api.459695.xyz"
+PROVIDER_URL["default:codex"]="https://api.459695.xyz"
+PROVIDER_URL["deepseek:claude"]="https://api.deepseek.com/anthropic"
+PROVIDER_URL["sub2api:claude"]="https://sub2api.joe.heiyu.space"
+PROVIDER_URL["sub2api:codex"]="https://sub2api.joe.heiyu.space"
+PROVIDER_URL["tuzi:codex"]="https://api.tu-zi.com/coding"
 
 mask_secret() {
   local secret="${1:-}"
@@ -120,18 +127,20 @@ check_residue() {
 }
 
 echo "============================================"
-echo " 一键配置脚本"
+echo " 一键配置脚本 — 统一入口"
 echo "============================================"
 echo ""
 
-# ---- 1. 交互选择: Claude or Codex ----
+# ============================================================
+# 第 1 步：选择工具
+# ============================================================
 echo "请选择要配置的工具:"
-echo "  1) Claude Code（默认 DeepSeek 模型）"
-echo "  2) CodeX（默认 GPT-5.5 模型）"
-read -rp "输入 1 或 2 [1]: " CHOICE
-CHOICE="${CHOICE:-1}"
+echo "  1) Claude Code（DeepSeek 模型）"
+echo "  2) CodeX（GPT-5.5 模型）"
+read -rp "输入 1 或 2 [1]: " TOOL_CHOICE
+TOOL_CHOICE="${TOOL_CHOICE:-1}"
 
-case "$CHOICE" in
+case "$TOOL_CHOICE" in
   1|claude|Claude)
     TOOL="claude"
     TOOL_NAME="Claude Code"
@@ -141,7 +150,7 @@ case "$CHOICE" in
     TOOL_NAME="CodeX"
     ;;
   *)
-    err "无效选择: $CHOICE"
+    err "无效选择: $TOOL_CHOICE"
     exit 1
     ;;
 esac
@@ -150,11 +159,96 @@ echo ""
 echo "配置工具: $TOOL_NAME"
 echo ""
 
-# ---- 2. 索取 API Key ----
+# ============================================================
+# 第 2 步：选择提供商
+# ============================================================
 if [[ "$TOOL" == "claude" ]]; then
+  echo "请选择 API 提供商:"
+  echo "  1) api.459695.xyz（默认中转）"
+  echo "  2) DeepSeek 直连（api.deepseek.com）"
+  echo "  3) Sub2API 自建网关（sub2api.joe.heiyu.space）"
+  read -rp "输入 1-3 [1]: " PROVIDER_CHOICE
+  PROVIDER_CHOICE="${PROVIDER_CHOICE:-1}"
+
+  case "$PROVIDER_CHOICE" in
+    1) PROVIDER="default" ;;
+    2) PROVIDER="deepseek" ;;
+    3) PROVIDER="sub2api" ;;
+    *) err "无效选择: $PROVIDER_CHOICE"; exit 1 ;;
+  esac
+
+  BASE_URL="${PROVIDER_URL["${PROVIDER}:claude"]}"
   KEY_NAME="ANTHROPIC_AUTH_TOKEN"
+
+  # 模型映射
+  case "$PROVIDER" in
+    default)
+      MODEL_HAIKU="deepseek-v4-flash"
+      MODEL_OPUS="deepseek-v4-pro[1m]"
+      MODEL_SONNET="deepseek-v4-flash[1M]"
+      MODEL_SONNET_NAME="deepseek-v4-flash"
+      PROVIDER_LABEL="api.459695.xyz"
+      ;;
+    deepseek)
+      MODEL_HAIKU="deepseek-v4-flash"
+      MODEL_OPUS="deepseek-v4-pro[1m]"
+      MODEL_SONNET="deepseek-v4-flash[1M]"
+      MODEL_SONNET_NAME="deepseek-v4-flash"
+      PROVIDER_LABEL="DeepSeek 直连"
+      ;;
+    sub2api)
+      MODEL_HAIKU="deepseek-v4-flash"
+      MODEL_OPUS="deepseek-v4-pro[1m]"
+      MODEL_SONNET="deepseek-v4-flash[1M]"
+      MODEL_SONNET_NAME="deepseek-v4-flash"
+      PROVIDER_LABEL="Sub2API"
+      ;;
+  esac
 else
-  KEY_NAME="OPENAI_API_KEY"
+  echo "请选择 API 提供商:"
+  echo "  1) api.459695.xyz（默认中转）"
+  echo "  2) tuzi（api.tu-zi.com）"
+  echo "  3) Sub2API 自建网关（sub2api.joe.heiyu.space）"
+  read -rp "输入 1-3 [1]: " PROVIDER_CHOICE
+  PROVIDER_CHOICE="${PROVIDER_CHOICE:-1}"
+
+  case "$PROVIDER_CHOICE" in
+    1) PROVIDER="default" ;;
+    2) PROVIDER="tuzi" ;;
+    3) PROVIDER="sub2api" ;;
+    *) err "无效选择: $PROVIDER_CHOICE"; exit 1 ;;
+  esac
+
+  BASE_URL="${PROVIDER_URL["${PROVIDER}:codex"]}"
+  KEY_NAME="OpenAI API Key"
+
+  case "$PROVIDER" in
+    default)
+      CODEX_EFFORT="xhigh"
+      PROVIDER_LABEL="api.459695.xyz"
+      ;;
+    tuzi)
+      CODEX_EFFORT="medium"
+      PROVIDER_LABEL="tuzi"
+      ;;
+    sub2api)
+      CODEX_EFFORT="xhigh"
+      PROVIDER_LABEL="Sub2API"
+      ;;
+  esac
+fi
+
+echo ""
+info "提供商: ${PROVIDER_LABEL}（${BASE_URL}）"
+echo ""
+
+# ============================================================
+# 第 3 步：输入 API Key
+# ============================================================
+if [[ "$TOOL" == "claude" && "$PROVIDER" == "sub2api" ]]; then
+  info "Sub2API 后台创建 API Key，选择 Anthropic 分组"
+elif [[ "$TOOL" == "codex" && "$PROVIDER" == "sub2api" ]]; then
+  info "Sub2API 后台创建 API Key，选择 OpenAI 分组"
 fi
 
 read -rsp "请输入你的 ${KEY_NAME}: " API_KEY
@@ -165,13 +259,17 @@ if [[ -z "$API_KEY" ]]; then
   exit 1
 fi
 
-# ---- 3. 检测 shell ----
+# ============================================================
+# 第 4 步：检测 shell
+# ============================================================
 CURRENT_SHELL=$(basename "${SHELL:-/bin/bash}")
-log "检测到 shell: $CURRENT_SHELL，将只清理 $TOOL_NAME 相关环境变量，不写入 shell rc"
+log "检测到 shell: $CURRENT_SHELL，写入配置文件，不写入 shell rc"
 
-# ---- 4. 配置目标工具 ----
+# ============================================================
+# 第 5 步：配置目标工具
+# ============================================================
 if [[ "$TOOL" == "claude" ]]; then
-  # ---- 4a. 配置 Claude Code ----
+  # ---- 配置 Claude Code ----
   cleanup_claude_env
   check_residue 'ANTHROPIC_|CLAUDE_CODE_' "Claude"
 
@@ -182,12 +280,13 @@ if [[ "$TOOL" == "claude" ]]; then
   cat > "$CLAUDE_SETTINGS" <<EOF
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "${CLAUDE_BASE_URL}",
+    "ANTHROPIC_BASE_URL": "${BASE_URL}",
     "ANTHROPIC_AUTH_TOKEN": "${API_KEY_JSON}",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1M]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "deepseek-v4-flash"
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "${MODEL_HAIKU}",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "${MODEL_OPUS}",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "${MODEL_SONNET}",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "${MODEL_SONNET_NAME}",
+    "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1"
   },
   "includeCoAuthoredBy": false
 }
@@ -201,12 +300,13 @@ EOF
   echo " 配置完成，验证如下:"
   echo "============================================"
   echo "配置文件                  = $CLAUDE_SETTINGS"
-  echo "ANTHROPIC_BASE_URL         = ${CLAUDE_BASE_URL}"
+  echo "提供商                     = ${PROVIDER_LABEL}"
+  echo "ANTHROPIC_BASE_URL         = ${BASE_URL}"
   echo "ANTHROPIC_AUTH_TOKEN       = $(mask_secret "$API_KEY")"
-  echo "HAIKU                      = deepseek-v4-flash"
-  echo "OPUS                       = deepseek-v4-pro[1m]"
-  echo "SONNET                     = deepseek-v4-flash[1M]"
-  echo "SONNET_MODEL_NAME          = deepseek-v4-flash"
+  echo "HAIKU                      = ${MODEL_HAIKU}"
+  echo "OPUS                       = ${MODEL_OPUS}"
+  echo "SONNET                     = ${MODEL_SONNET}"
+  echo "SONNET_MODEL_NAME          = ${MODEL_SONNET_NAME}"
   echo ""
   echo "验证命令:"
   echo "  test -f ~/.claude/settings.json && echo OK"
@@ -216,11 +316,11 @@ EOF
   log "全部完成！新开一个终端，输入 claude 即可使用。"
 
 else
-  # ---- 4b. 配置 CodeX（custom provider） ----
+  # ---- 配置 CodeX ----
   cleanup_codex_env
   check_residue 'OPENAI_API_KEY|CODEX_HOME' "CodeX"
 
-  info "写入 CodeX 配置文件 (custom: ${CODEX_BASE_URL})..."
+  info "写入 CodeX 配置文件 (custom: ${BASE_URL})..."
   mkdir -p "$HOME/.codex"
   API_KEY_JSON=$(json_escape "$API_KEY")
 
@@ -233,7 +333,7 @@ EOF
   cat > "$CODEX_CONFIG" <<EOF
 model_provider = "custom"
 model = "gpt-5.5"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "${CODEX_EFFORT}"
 disable_response_storage = true
 
 [model_providers]
@@ -241,7 +341,7 @@ disable_response_storage = true
 name = "custom"
 wire_api = "responses"
 requires_openai_auth = true
-base_url = "${CODEX_BASE_URL}"
+base_url = "${BASE_URL}"
 
 [features]
 goals = true
@@ -256,10 +356,13 @@ EOF
   echo " 配置完成，验证如下:"
   echo "============================================"
   echo "认证文件       = $CODEX_AUTH"
+  echo "配置文件       = $CODEX_CONFIG"
+  echo "提供商         = ${PROVIDER_LABEL}"
+  echo "BASE_URL       = ${BASE_URL}"
   echo "OPENAI_API_KEY = $(mask_secret "$API_KEY")"
 
   if [[ -f "$CODEX_CONFIG" && -f "$CODEX_AUTH" ]]; then
-    log "CodeX 配置文件存在"
+    log "CodeX 配置文件已就绪"
     echo ""
     echo "关键配置项:"
     grep -E '^(model_provider|model|model_reasoning_effort|disable_response_storage)' "$CODEX_CONFIG" 2>/dev/null || true
@@ -277,5 +380,5 @@ EOF
 
   echo ""
   log "全部完成！新开一个终端，输入 codex 即可使用。"
-  log "模型: gpt-5.5，提供商: custom (${CODEX_BASE_URL})"
+  log "提供商: ${PROVIDER_LABEL}（${BASE_URL}），模型: gpt-5.5"
 fi
