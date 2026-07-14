@@ -136,7 +136,7 @@ echo ""
 # ============================================================
 echo "请选择要配置的工具:"
 echo "  1) Claude Code（DeepSeek 模型）"
-echo "  2) CodeX（GPT-5.5 模型）"
+echo "  2) CodeX（gpt-5.6-luna 模型）"
 read -rp "输入 1 或 2 [1]: " TOOL_CHOICE
 TOOL_CHOICE="${TOOL_CHOICE:-1}"
 
@@ -332,7 +332,7 @@ EOF
 
   cat > "$CODEX_CONFIG" <<EOF
 model_provider = "custom"
-model = "gpt-5.5"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "${CODEX_EFFORT}"
 disable_response_storage = true
 
@@ -380,5 +380,5 @@ EOF
 
   echo ""
   log "全部完成！新开一个终端，输入 codex 即可使用。"
-  log "提供商: ${PROVIDER_LABEL}（${BASE_URL}），模型: gpt-5.5"
+  log "提供商: ${PROVIDER_LABEL}（${BASE_URL}），模型: gpt-5.6-luna"
 fi

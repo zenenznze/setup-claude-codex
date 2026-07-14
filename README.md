@@ -23,7 +23,7 @@ chmod +x setup.sh
 | Claude Code | `api.459695.xyz`（默认） | `https://api.459695.xyz` |
 | Claude Code | DeepSeek 直连 | `https://api.deepseek.com/anthropic` |
 | Claude Code | Sub2API 自建网关 | `https://sub2api.joe.heiyu.space` |
-| CodeX | `api.459695.xyz`（默认） | `https://api.459695.xyz` |
+| CodeX | `api.459695.xyz`（默认，gpt-5.6-luna） | `https://api.459695.xyz` |
 | CodeX | tuzi | `https://api.tu-zi.com/coding` |
 | CodeX | Sub2API 自建网关 | `https://sub2api.joe.heiyu.space` |
 
@@ -88,7 +88,7 @@ claude /status
 
 ```toml
 model_provider = "custom"
-model = "gpt-5.5"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "xhigh"
 disable_response_storage = true
 
