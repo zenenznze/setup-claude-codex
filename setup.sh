@@ -33,8 +33,6 @@ RC_FILES=(
 
 # ---- 提供商列表（URL + 显示名 + 模型映射） ----
 declare -A PROVIDER_URL
-PROVIDER_URL["default:claude"]="https://api.459695.xyz"
-PROVIDER_URL["default:codex"]="https://api.459695.xyz"
 PROVIDER_URL["deepseek:claude"]="https://api.deepseek.com/anthropic"
 PROVIDER_URL["sub2api:claude"]="https://sub2api.joe.heiyu.space"
 PROVIDER_URL["sub2api:codex"]="https://sub2api.joe.heiyu.space"
@@ -164,16 +162,14 @@ echo ""
 # ============================================================
 if [[ "$TOOL" == "claude" ]]; then
   echo "请选择 API 提供商:"
-  echo "  1) api.459695.xyz（默认中转）"
-  echo "  2) DeepSeek 直连（api.deepseek.com）"
-  echo "  3) Sub2API 自建网关（sub2api.joe.heiyu.space）"
-  read -rp "输入 1-3 [1]: " PROVIDER_CHOICE
+  echo "  1) DeepSeek 直连（api.deepseek.com）"
+  echo "  2) Sub2API 自建网关（sub2api.joe.heiyu.space）"
+  read -rp "输入 1-2 [1]: " PROVIDER_CHOICE
   PROVIDER_CHOICE="${PROVIDER_CHOICE:-1}"
 
   case "$PROVIDER_CHOICE" in
-    1) PROVIDER="default" ;;
-    2) PROVIDER="deepseek" ;;
-    3) PROVIDER="sub2api" ;;
+    1) PROVIDER="deepseek" ;;
+    2) PROVIDER="sub2api" ;;
     *) err "无效选择: $PROVIDER_CHOICE"; exit 1 ;;
   esac
 
@@ -182,13 +178,6 @@ if [[ "$TOOL" == "claude" ]]; then
 
   # 模型映射
   case "$PROVIDER" in
-    default)
-      MODEL_HAIKU="deepseek-v4-flash"
-      MODEL_OPUS="deepseek-v4-pro[1m]"
-      MODEL_SONNET="deepseek-v4-flash[1M]"
-      MODEL_SONNET_NAME="deepseek-v4-flash"
-      PROVIDER_LABEL="api.459695.xyz"
-      ;;
     deepseek)
       MODEL_HAIKU="deepseek-v4-flash"
       MODEL_OPUS="deepseek-v4-pro[1m]"
@@ -206,16 +195,14 @@ if [[ "$TOOL" == "claude" ]]; then
   esac
 else
   echo "请选择 API 提供商:"
-  echo "  1) api.459695.xyz（默认中转）"
-  echo "  2) tuzi（api.tu-zi.com）"
-  echo "  3) Sub2API 自建网关（sub2api.joe.heiyu.space）"
-  read -rp "输入 1-3 [1]: " PROVIDER_CHOICE
+  echo "  1) tuzi（api.tu-zi.com）"
+  echo "  2) Sub2API 自建网关（sub2api.joe.heiyu.space）"
+  read -rp "输入 1-2 [1]: " PROVIDER_CHOICE
   PROVIDER_CHOICE="${PROVIDER_CHOICE:-1}"
 
   case "$PROVIDER_CHOICE" in
-    1) PROVIDER="default" ;;
-    2) PROVIDER="tuzi" ;;
-    3) PROVIDER="sub2api" ;;
+    1) PROVIDER="tuzi" ;;
+    2) PROVIDER="sub2api" ;;
     *) err "无效选择: $PROVIDER_CHOICE"; exit 1 ;;
   esac
 
@@ -223,10 +210,6 @@ else
   KEY_NAME="OpenAI API Key"
 
   case "$PROVIDER" in
-    default)
-      CODEX_EFFORT="xhigh"
-      PROVIDER_LABEL="api.459695.xyz"
-      ;;
     tuzi)
       CODEX_EFFORT="medium"
       PROVIDER_LABEL="tuzi"

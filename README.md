@@ -20,10 +20,8 @@ chmod +x setup.sh
 
 | 工具 | 提供商 | API 地址 |
 |------|--------|----------|
-| Claude Code | `api.459695.xyz`（默认） | `https://api.459695.xyz` |
 | Claude Code | DeepSeek 直连 | `https://api.deepseek.com/anthropic` |
 | Claude Code | Sub2API 自建网关 | `https://sub2api.joe.heiyu.space` |
-| CodeX | `api.459695.xyz`（默认，gpt-5.6-luna） | `https://api.459695.xyz` |
 | CodeX | tuzi | `https://api.tu-zi.com/coding` |
 | CodeX | Sub2API 自建网关 | `https://sub2api.joe.heiyu.space` |
 
@@ -39,12 +37,12 @@ chmod +x setup.sh
 
 ## 配置 Claude Code
 
-写入 `~/.claude/settings.json`，以默认提供商为例：
+写入 `~/.claude/settings.json`，以 DeepSeek 直连为例：
 
 ```json
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "https://api.459695.xyz",
+    "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
     "ANTHROPIC_AUTH_TOKEN": "<你的 Token>",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-flash[1M]",
@@ -84,12 +82,12 @@ claude /status
 }
 ```
 
-写入 `~/.codex/config.toml`（默认提供商）：
+写入 `~/.codex/config.toml`（以 tuzi 提供商为例）：
 
 ```toml
 model_provider = "custom"
 model = "gpt-5.6-luna"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "medium"
 disable_response_storage = true
 
 [model_providers]
@@ -97,7 +95,7 @@ disable_response_storage = true
 name = "custom"
 wire_api = "responses"
 requires_openai_auth = true
-base_url = "https://api.459695.xyz"
+base_url = "https://api.tu-zi.com/coding"
 
 [features]
 goals = true
